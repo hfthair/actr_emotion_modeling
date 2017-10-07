@@ -3,320 +3,132 @@
 (load "data.lisp")
 
 (setf *result* ())
-	
-(defun init-dict ()
-	(LOOP FOR i from 1 to (length *word-map*)
-		FOR (W S1 S2 S3 A1 A2 A3 E NOUSE) iN *word-map* DO 
-			(EVAL 
-				(LIST 'ADD-DM 
-					(LIST (format nil "w~A" i) 
-						'ISA 'DIC 'WORD W 
-						'st1 S1 'st2 S2 'st3 S3 
-						'act1 A1 'act2 A2 'act3 A3 
-						'emo E)))))
 
-(defun find-init-seq ()
-	(progn
-		(loop for i in *word-freq*  do
-			(find-word i))
-))
-
-(defun find-word (load-word)
-	(progn
-		(delete-chunk pre-find)
-		(let ((wordt load-word))
-			(progn (EVAL (LIST 'DEFINE-CHUNKS
-						(LIST 'pre-find 'ISA 'pre-find 'state 'start 'word wordt)))
-			(goal-focus pre-find)
-			(run 5))
-		)
-	))
-	
-(defun do-experiment (st act gemo)
-  (progn
-	(print (format nil "do experiment ~A ~A ~A" st act gemo))
-	(delete-chunk goal)
-	(let (
-			(cmd (reverse (list 'goal 'isa 'goal 'state 'start)))
-		)
-		(progn
-			(cond ((eql st 1) 
-				(progn (push 'gst1 cmd) (push 1 cmd)))
-				((eql st 2) 
-				(progn (push 'gst2 cmd) (push 1 cmd)))
-				((eql st 3) 
-				(progn (push 'gst3 cmd) (push 1 cmd)))
-			)
-			(cond ((eql act 1) 
-				(progn (push 'gact1 cmd) (push 1 cmd)))
-				((eql act 2) 
-				(progn (push 'gact2 cmd) (push 1 cmd)))
-				((eql act 3) 
-				(progn (push 'gact3 cmd) (push 1 cmd)))
-			)
-			(push 'gemo cmd)
-			(push gemo cmd)
-			(let ((rcmd (reverse cmd)))
-				(progn 
-					(eval (list 'DEFINE-CHUNKS rcmd))))
-			(eval (list 'goal-focus 'goal))
-			(run 5)
-		))
-	)
-  )
-
-(defun do-experiment-with-loop  (st act gemo trail)
+(defun gogogo  (count)
 	(progn
 		(setf *result* ())
-		(loop for i from 1 to trail do 
-			(do-experiment st act gemo)
+		(run 10)
+		(loop for i from 1 to (- count 1) do 
+			(progn
+				(set-imaginal-free)
+				(delete-chunk goal-chunk)
+				(eval-and-print (list 'define-chunks
+					(list 'goal-chunk 'isa 'goal 'state 'goal-step 'target *emo*)))
+				(goal-focus goal-chunk)
+				(run 10)
+			)
 		)
-		(print "####### finish #######")
-		(loop for i in *result* do
-			(print i)
-		)
-		(with-open-file (str "filename.txt"
-                     :direction :output
-                     :if-exists :supersede
-                     :if-does-not-exist :create)
-		(format str "~{~A~^ ~}" *result*))
-		(print "####### finish #######")
+		(let ((rrr (reverse *result*))) (print rrr))
 	)
 )
-  
-(define-model sunday
 
-(sgp :esc t :rt -2 :lf 0.4 :ans 0.5 :bll 0.5 :act nil :ncnar nil :trace-detail high) 
-(sgp :seed (252 6))
-
-(chunk-type goal state gst1 gst2 gst3 gact1 gact2 gact3 gemo)
-(chunk-type pre-find state word)
-(chunk-type dic word st1 st2 st3 act1 act2 act3 emo)
-
-(add-dm
-	(start isa chunk)(wait isa chunk)(end isa chunk)
+(defun eval-and-print(r)
+	(progn
+		(print r)
+		(eval r)
+	)
 )
 
-(init-dict)
+(defun init ()
+  (progn
+	(chunk-type DIC WORD VAL)
+	(chunk-type goal state target)
+	(LOOP FOR i from 1 to (length *word-map*)
+		FOR (DW DE DI) IN *word-map* DO 
+		(progn
+			(eval-and-print (list 'ADD-DM (list DW 'ISA 'CHUNK)))
+			(eval-and-print (list 'ADD-DM (list (intern (format nil "DIC-~A" i)) 'ISA 'DIC 'WORD DW 'VAL DE )))
+			(eval-and-print (list 'SDP (intern (format nil "DIC-~A" i)) ':CREATION-TIME DI))
+		)
+	)
+	(let (
+		(tempt (reverse (list 'chunk-type 'news )))
+		(tempc (reverse (list 'news-chunk 'isa 'news)))
+		)
+		(LOOP FOR i from 1 to (length *news* )
+			FOR newx IN *news* DO
+			(progn
+				(push (intern (format nil "NEW-~A" i)) tempt)
+				(push (intern (format nil "NEW-~A" i)) tempc)
+				(push newx tempc)
+			)
+		)
+		(eval-and-print (reverse tempt))
+		(eval-and-print (list 'define-chunks (reverse tempc)))
+	)
+	(add-dm
+		(goal-start isa chunk)(goal-step isa chunk)(goal-ret isa chunk)(goal-end isa chunk)
+	)
+	(eval-and-print (list 'define-chunks (list 'goal-chunk 'isa 'goal 'state 'goal-start 'target *emo*)))
+	(goal-focus goal-chunk)
+  )
+)
 
-(p find-word-begin
+(defun simhook (x y)
+	(progn
+		(print (format nil "#########=> simhook ~A ~A" x y))
+		(if (and (or (typep x 'integer) (typep x 'float)) (or (typep y 'integer) (typep x 'float)))
+			(* *simparam* (if (< x y) (- x y) (- y x)))
+			nil
+		)
+	)
+)
+
+(define-model emo-word
+
+(sgp :esc t :rt -2 :trace-detail high :act t
+	:lf 0.4 :ans .15 :pas nil
+	:bll 0.5 :mas 1.5 :imaginal-activation 1.0 :mp 1.0 :ol t) 
+(sgp :sim-hook simhook)
+
+(init)
+
+
+(p pr-imaginal
 	=goal>
-		isa pre-find
-		state start
-		word =tf
+		isa			goal
+		state 		goal-start
+	?imaginal>
+		state       free
    ==>
-	+retrieval>
-		isa dic
-		word =tf
+	+imaginal> 		news-chunk
 	=goal>
-		isa pre-find
-		state wait
+		isa 		goal
+		state 		goal-step
 )
 
-(p find-word-bingo
+(p pr-retrieval
 	=goal>
-		isa pre-find
-		state wait
+		isa 		goal
+		state 		goal-step
+		target 		=tft
+	=imaginal>
+		ISA         news
+   ==>
+    =imaginal>
+	+retrieval>
+		isa 		dic
+		val			=tft
+		:recently-retrieved nil
+	=goal>
+		isa 		goal
+		state 		goal-ret
+)
+(p pr-done
+	=goal>
+		isa 		goal
+		state 		goal-ret
 	=retrieval>
-		isa dic
-		word =varx
+		isa 		dic
+		word 		=tfr
    ==>
 	=goal>
-		isa pre-find
-		state end
-	!output! =varx
-)
-
-(p exp-begin-11
-	=goal>
-		isa goal
-		state start
-		gst1 =vs
-		gact1 =va
-		gemo =ve
-   ==>
-	+retrieval>
-		isa dic
-		st1 =vs
-		act1 =va
-		emo =ve
-	=goal>
-		isa goal
-		state wait
-)
-
-(p exp-begin-12
-	=goal>
-		isa goal
-		state start
-		gst1 =vs
-		gact2 =va
-		gemo =ve
-   ==>
-	+retrieval>
-		isa dic
-		st1 =vs
-		act2 =va
-		emo =ve
-	=goal>
-		isa goal
-		state wait
-)
-
-(p exp-begin-13
-	=goal>
-		isa goal
-		state start
-		gst1 =vs
-		gact3 =va
-		gemo =ve
-   ==>
-	+retrieval>
-		isa dic
-		st1 =vs
-		act3 =va
-		emo =ve
-	=goal>
-		isa goal
-		state wait
-)
-
-(p exp-begin-21
-	=goal>
-		isa goal
-		state start
-		st2 =vs
-		act1 =va
-		emo =ve
-   ==>
-	+retrieval>
-		isa dic
-		st2 =vs
-		act1 =va
-		emo =ve
-	=goal>
-		isa goal
-		state wait
-)
-
-(p exp-begin-22
-	=goal>
-		isa goal
-		state start
-		gst2 =vs
-		gact2 =va
-		gemo =ve
-   ==>
-	+retrieval>
-		isa dic
-		st2 =vs
-		act2 =va
-		emo =ve
-	=goal>
-		isa goal
-		state wait
-)
-
-
-(p exp-begin-23
-	=goal>
-		isa goal
-		state start
-		gst2 =vs
-		gact3 =va
-		gemo =ve
-   ==>
-	+retrieval>
-		isa dic
-		st2 =vs
-		act3 =va
-		emo =ve
-	=goal>
-		isa goal
-		state wait
-)
-
-(p exp-begin-31
-	=goal>
-		isa goal
-		state start
-		gst3 =vs
-		gact1 =va
-		gemo =ve
-   ==>
-	+retrieval>
-		isa dic
-		st3 =vs
-		act1 =va
-		emo =ve
-	=goal>
-		isa goal
-		state wait
-)
-
-(p exp-begin-32
-	=goal>
-		isa goal
-		state start
-		gst3 =vs
-		gact2 =va
-		gemo =ve
-   ==>
-	+retrieval>
-		isa dic
-		st3 =vs
-		act2 =va
-		emo =ve
-	=goal>
-		isa goal
-		state wait
-)
-
-(p exp-begin-33
-	=goal>
-		isa goal
-		state start
-		gst3 =vs
-		gact3 =va
-		gemo =ve
-   ==>
-	+retrieval>
-		isa dic
-		st3 =vs
-		act3 =va
-		emo =ve
-	=goal>
-		isa goal
-		state wait
-)
-
-(p exp-bingo
-	=goal>
-		isa goal
-		state wait
-	=retrieval>
-		isa dic
-		word =varw
-   ==>
-	=goal>
-		isa goal
-		state end
-	!output! =varw
-	!eval! (push =varw *result*)
-)
-
-(p exp-no-find
-	=goal>
-		isa goal
-		state wait
-    ?retrieval>
-      buffer   failure
-   ==>
-	-goal>
-	!output! "not found"
+		isa 		goal
+		state 		goal-end
+	!output! 		=tfr
+	!eval! (push =tfr *result*)
 )
 
 )
 
-(find-init-seq)
 

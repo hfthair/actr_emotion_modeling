@@ -1,5 +1,66 @@
 (clear-all)
 
+(setf *word-map*
+	(list
+	'(listeria -0.2 -300)
+	'(cream 0.0833  -250)
+	'(recall 0.09999  -250)
+	'(outbreak -0.125  -250)
+	'(death -0.140625 -250)
+	'(deadly -0.25 -250)
+	'(some 0.1 -250)
+))
+
+(setf *news* 
+	'(
+	cream recall death
+	)
+)
+
+(setf *emo* -0.3)
+
+(defun eval-and-print(r)
+(progn
+	(print r)
+	(eval r)
+)
+)
+
+(defun init ()
+  (progn
+	(chunk-type DIC WORD VAL)
+	(chunk-type goal state target)
+	(LOOP FOR i from 1 to (length *word-map*)
+		FOR (DW DE DI) IN *word-map* DO 
+		(progn
+			(eval-and-print (list 'ADD-DM (list DW 'ISA 'CHUNK)))
+			(eval-and-print (list 'ADD-DM (list (intern (format nil "DIC-~A" i)) 'ISA 'DIC 'WORD DW 'VAL DE )))
+			(eval-and-print (list 'SDP (intern (format nil "DIC-~A" i)) ':CREATION-TIME DI))
+		)
+	)
+	(let (
+		(tempt (reverse (list 'chunk-type 'news )))
+		(tempc (reverse (list 'news-chunk 'isa 'news)))
+		)
+		(LOOP FOR i from 1 to (length *news* )
+			FOR newx IN *news* DO
+			(progn
+				(push (intern (format nil "NEW-~A" i)) tempt)
+				(push (intern (format nil "NEW-~A" i)) tempc)
+				(push newx tempc)
+			)
+		)
+		(eval-and-print (reverse tempt))
+		(eval-and-print (list 'define-chunks (reverse tempc)))
+	)
+	(add-dm
+		(goal-start isa chunk)(goal-img isa chunk)(goal-ret isa chunk)(goal-end isa chunk)
+	)
+	(eval-and-print (list 'define-chunks (list 'goal-chunk 'isa 'goal 'state 'goal-start 'target *emo*)))
+	(goal-focus goal-chunk)
+  )
+)
+
 (defun simhook (x y)
 	(progn
 		(print (format nil "#########=> simhook ~A ~A" x y))
@@ -8,82 +69,61 @@
 			nil
 		)
 	)
-	)
+)
 
-(define-model sunday
+(define-model emo-word
 
-(sgp :esc t :rt -2 :lf 0.4 :ans nil :bll 0.5 :act t :mas 2.1 :imaginal-activation 1.0 :mp 1.0
-	:ncnar nil :trace-detail high) 
+(sgp :esc t :rt -2 :trace-detail high :lf 0.4 :ans nil :ncnar nil
+	:bll 0.5 :act t :mas 2.1 :imaginal-activation 1.0 :mp 1.0) 
 (sgp :seed (223 96))
 (sgp :sim-hook simhook)
 
-(chunk-type goal state target w1 w2)
-(chunk-type img i1 i2)
-(chunk-type dic word val)
+(init)
 
-(add-dm
-	(start isa chunk)(waitim isa chunk)(wait isa chunk)(end isa chunk)
-	(aa isa chunk) (bb isa chunk) (cc isa chunk) (dd isa chunk)
-	(ggg isa goal state start target 0.9 w1 cc w2 dd)
-	(d1 isa dic word aa val 0.4)
-	(d2 isa dic word bb val 0.1)
-	(d3 isa dic word cc val 0.2)
-	(d4 isa dic word dd val 0.3)
-	(d5 isa dic word cc val 0.9)
-	(d6 isa dic word cc val 0.7)
-)
 
-(p begin
+(p pr-imaginal
 	=goal>
-		isa goal
-		state start
-		w1 =t1
-		w2 =t2
+		isa			goal
+		state 		goal-start
 	?imaginal>
 		state       free
    ==>
-	+imaginal>
-		ISA         img
-        i1        =t1
-        i2        =t2
+	+imaginal> 		news-chunk
 	=goal>
-		isa goal
-		state waitim
+		isa 		goal
+		state 		goal-img
 )
 
-(p find-word-begin
+(p pr-retrieval
 	=goal>
-		isa goal
-		state waitim
-		target =tf
+		isa 		goal
+		state 		goal-img
+		target 		=tft
 	=imaginal>
-		ISA         img
-        i1        =t1
-        i2        =t2
+		ISA         news
    ==>
     =imaginal>
 	+retrieval>
-		isa dic
-		word =t1
-		val =tf
+		isa 		dic
+		val			=tft
 	=goal>
-		isa goal
-		state wait
+		isa 		goal
+		state 		goal-ret
 )
-(p find-word-bingo
+(p pr-done
 	=goal>
-		isa goal
-		state wait
+		isa 		goal
+		state 		goal-ret
 	=retrieval>
-		isa dic
-		word =varx
+		isa 		dic
+		word 		=tfr
    ==>
 	=goal>
-		isa goal
-		state end
-	!output! =varx
+		isa 		goal
+		state 		goal-end
+	!output! 		=tfr
 )
-(goal-focus ggg)
+
 )
 
 

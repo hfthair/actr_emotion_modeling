@@ -5,7 +5,7 @@
 	)
 )
 
-(setf *emo* -0.5)
+(setf *emo* -0.37)
 
 (setf *simparam* 3.5)
 

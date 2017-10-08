@@ -4,13 +4,14 @@ import time
 import pickle
 import os
 import math
-from functools import reduce 
+from functools import reduce
+from nltk.corpus import wordnet
 
 # stopwords = ['a', 'be','the', 'on','crf','blue-bell','general-mills','subway']
 stopwords = ['a', 'an', 'be','the', 'on','i','not','out', 'have', 'some', 'over', 'one', 'now', 'other', 'about', 'around', 'all']
 beta = 0.0 #0.01
 
-def make_dict(db_name, limit, time_from, time_to, time_new):
+def make_dict(db_name, limit, time_from, time_to, time_new, syno_cnt=0):
     print('##### db {} #####'.format(db_name))
     cachename = "result/{}.p".format(db_name)
     filtered_dic = None
@@ -56,6 +57,7 @@ def make_dict(db_name, limit, time_from, time_to, time_new):
             print('nothing!')
             return
 
+        print('calculate...')
         collectDic = {}
         for x in datas:
             dd = x['data']
@@ -77,8 +79,24 @@ def make_dict(db_name, limit, time_from, time_to, time_new):
             ts = filtered_dic[i]['time']
             t = [time.strptime(x, '%Y-%m-%d %H:%M') for x in ts]
             filtered_dic[i]['time'] = list(t)
-        print('save cache...')
-        pickle.dump(filtered_dic, open("result/{}.p".format(db_name), "wb"))
+            filtered_dic[i]['syno'] = []
+            filtered_dic[i]['tmp'] = wordnet.synsets(i)
+
+        print('sim...')
+        from itertools import product
+        for i, j in product(filtered_dic.keys(), filtered_dic.keys()):
+            if i == j:
+                continue
+            synsi = filtered_dic[i]['tmp']
+            synsj = filtered_dic[j]['tmp']
+            ws = list([wordnet.wup_similarity(u, v) or 0 for u, v in product(synsi, synsj)])
+            if len(ws) > 0:
+                r = max(ws)
+                if r > 9.9:
+                    filtered_dic[i]['syno'].append(j)
+
+        # print('save cache...')
+        # pickle.dump(filtered_dic, open("result/{}.p".format(db_name), "wb"))
 
     output = []
     time_end_struct = time.strptime(time_new, '%Y-%m-%d %H:%M')
@@ -89,24 +107,35 @@ def make_dict(db_name, limit, time_from, time_to, time_new):
         segema = reduce(lambda x, y: math.pow(y, -1/2) + x, deltas, 0)
         bi = math.log(segema) + beta
 
-        output.append((word, filtered_dic[word]['value'], bi))
+        output.append({
+                    'word': word,
+                    'value': filtered_dic[word]['value'],
+                    'bi': bi,
+                    'syno': filtered_dic[word]['syno']
+                    })
 
     print('write file...')
-    # dicfilename = 'result/dict_{}.txt'.format(db_name)
-    # with open(dicfilename, 'w', encoding='utf8') as f:
-    #     for i in output:
-    #         line = "'({}\t{}\t{})\n".format(i[0], i[1], i[2])
-    #         f.write(line)
     with open('result/dict.lisp', 'w', encoding='utf8') as f:
-        f.write('(setf *word-map*\n\t(list\n')
+        f.write('''
+(defun init-dict ()
+    (progn \n\n''')
+        f.write('\t\t(chunk-type DIC WORD VAL ' + ' '.join(['SYNO{}'.format(x) for x in range(syno_cnt)]) + ')\n')
+        cnt = 0
         for i in output:
-            line = "'({}\t{}\t{})\n".format(i[0], i[1], i[2])
-            f.write(line)
-        f.write('))')
+            tmp = ' '.join(['SYNO{} {}'.format(x, i['syno'][x] if x < len(i['syno']) else 'nil') for x in range(syno_cnt)])
+            f.write('''
+        (ADD-DM
+            ({0} ISA CHUNK)
+            (DIC-{1} ISA DIC WORD {0} VAL {2} {3})
+        )\n'''.format(i['word'], cnt, i['value'], tmp))
+            f.write('\t\t(SDP DIC-{} :BASE-LEVEL {})\n'.format(cnt, i['bi']))
+            cnt = cnt + 1
+        f.write('\n))')
+
     print('done')
 
 
-make_dict('1581cheese', 100, '2015-09-15 00:00', '2015-09-23 23:59', '2015-09-23 23:59')
+make_dict('1581cheese', 100, '2015-09-15 00:00', '2015-09-23 23:59', '2015-09-23 23:59', 10)
 
 
 

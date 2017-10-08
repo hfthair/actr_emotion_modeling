@@ -1,10 +1,11 @@
 (clear-all)
-
+(load "result/dict.lisp")
 (load "data.lisp")
 
 (setf *result* ())
 
-(defun gogogo  (count)
+
+(defun one-person-say  (count)
 	(progn
 		(setf *result* ())
 		(run 10)
@@ -24,7 +25,6 @@
 
 (defun eval-and-print(r)
 	(progn
-		(print r)
 		(eval r)
 	)
 )
@@ -38,7 +38,7 @@
 		(progn
 			(eval-and-print (list 'ADD-DM (list DW 'ISA 'CHUNK)))
 			(eval-and-print (list 'ADD-DM (list (intern (format nil "DIC-~A" i)) 'ISA 'DIC 'WORD DW 'VAL DE )))
-			(eval-and-print (list 'SDP (intern (format nil "DIC-~A" i)) ':CREATION-TIME DI))
+			(eval-and-print (list 'SDP (intern (format nil "DIC-~A" i)) ':BASE-LEVEL DI))
 		)
 	)
 	(let (
@@ -74,15 +74,21 @@
 	)
 )
 
+(defun sjihook  (x y)
+	(progn
+		(print (format nil "#########=> sjihook ~A ~A" x y))
+		nil
+	)
+)
 (define-model emo-word
 
-(sgp :esc t :rt -2 :trace-detail high :act t
+(sgp :esc t :rt -5 :trace-detail high :act t
+	:declarative-num-finsts  20 :declarative-finst-span 20
 	:lf 0.4 :ans .15 :pas nil
-	:bll 0.5 :mas 1.5 :imaginal-activation 1.0 :mp 1.0 :ol t) 
-(sgp :sim-hook simhook)
+	:mas 9 :imaginal-activation 1.0 :mp 1.0 :bll nil  :ol t) 
+(sgp :sim-hook simhook :sji-hook sjihook)
 
 (init)
-
 
 (p pr-imaginal
 	=goal>

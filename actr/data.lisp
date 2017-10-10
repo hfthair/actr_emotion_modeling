@@ -1,11 +1,7 @@
 
-(setf *news* 
-	'(
-	soft brand recall serious listeria poison case
-	)
-)
+(load "news.lisp")
 
-(setf *emo* -0.37)
+(setf *emo* -0.217391304)
 
-(setf *simparam* 3.5)
+(setf *simparam* 0.8)
 

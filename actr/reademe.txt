@@ -1,0 +1,31 @@
+1 run python  simulation_data_pull---> result/dict.lisp
+2 data.lisp-->
+(1)(setf *news* 
+	'(
+	soft brand recall serious listeria poison case
+	)
+)
+拷出news的词
+
+(2)情感倾向设置
+(setf *emo* -0.37)
+(3)相似度惩罚系数
+(setf *simparam* 3.5)
+3 main.lispp--->
+(sgp :esc t 
+:rt -10阈值
+:trace-detail high high可以改成nil or low
+:act nil activation记录，显示为t
+:declarative-num-finsts 200
+:declarative-finst-span 200
+:lf 0.5 
+:ans .61 noise可以修改
+:pas nil
+:mas 9  S值
+:imaginal-activation 1.0  Sji的系数，可以修改，默认为0
+:mp 1.0  相似度系数，默认是0
+:bll nil  
+:ol t) 
+(sgp :sim-hook simhook )
+4 run anyl.py
+

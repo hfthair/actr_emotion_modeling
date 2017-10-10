@@ -66,10 +66,10 @@
 
 (define-model emo-word
 
-(sgp :esc t :rt -10 :trace-detail high :act nil
+(sgp :esc t :rt -10 :trace-detail low :act nil
 	:declarative-num-finsts 200 :declarative-finst-span 200
-	:lf 0.5 :ans .61 :pas nil
-	:mas 9 :imaginal-activation 1.0 :mp 1.0 :bll nil  :ol t) 
+	:lf 0.5 :ans .34 :pas nil
+	:mas 1.6 :imaginal-activation 1.0 :mp 1.0 :bll nil  :ol t) 
 (sgp :sim-hook simhook )
 
 (init-dict)

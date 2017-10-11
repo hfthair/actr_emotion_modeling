@@ -7,14 +7,8 @@ import math
 from functools import reduce
 from nltk.corpus import wordnet
 
-# stopwords = ['a', 'be','the', 'on','crf','blue-bell','general-mills','subway']
-stopwords = ['a', 'an', 'be','the', 'on','i','not','out', 'have', 'some', 'over', 'one', 'now', 'other', 'about', 'around', 'all']
-beta = 0.0 #0.01
-extra = 1.0 # scale of cegema
-limit = 500    #  ----> the top 100 frequency from words
-syno_cnt = 10    # 10---->the maxin similar words num
+from configs import stopwords, beta, extra, limit, syno_cnt, time_extra, db_name
 
-time_extra = 3600 #    ---> time delta after last tw
 def make_dict_with_entire_table(db_name):
     print('############### db {} ##################'.format(db_name))
     print('connect to db...')
@@ -133,7 +127,7 @@ def make_dict_with_entire_table(db_name):
             os.makedirs('result/{}'.format(db_name))
         except:
             pass
-    with open('result/{}/dict.lisp'.format(db_name), 'w', encoding='utf8') as f:
+    with open('result/dict.lisp', 'w', encoding='utf8') as f:
         f.write('''
 (defun init-dict ()
     (progn \n\n''')
@@ -146,16 +140,17 @@ def make_dict_with_entire_table(db_name):
             ({0} ISA CHUNK)
             (DIC-{1} ISA DIC WORD {0} VAL {2} {3})
         )\n'''.format(i['word'], cnt, i['value'], tmp))
-            f.write('\t\t(SDP DIC-{} :BASE-LEVEL {})\n'.format(cnt, i['bi']))
+            f.write('        (SDP DIC-{} :BASE-LEVEL {})\n'.format(cnt, i['bi']))
             cnt = cnt + 1
         f.write('\n))')
+    os.system('copy result\\dict.lisp result\\{}\\dict.lisp'.format(db_name))
 
     print('$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$')
     print('\n\n')
 
 
 if __name__ == '__main__':
-    make_dict_with_entire_table('1581cheese')
+    make_dict_with_entire_table(db_name)
 
 
 

@@ -1,5 +1,5 @@
 (clear-all)
-(load "result/dict.lisp")
+
 (load "data.lisp")
 
 (setf *result* ())

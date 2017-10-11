@@ -1,7 +1,5 @@
 
-(load "news.lisp")
+(load "result/dict.lisp")
+(load "result/news.lisp")
 
-(setf *emo* -0.217391304)
-
-(setf *simparam* 0.8)
 

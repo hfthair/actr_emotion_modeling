@@ -1,3 +1,6 @@
+1 run step 1 ,make dic ,database ,configs.py---> dic and news cansh
+2 run step 2,make news ,prog run and get excel,--->cofigs, main.lisp and run .lisp
+===================================================================
 1 run python  simulation_data_pull---> result/dict.lisp
 2 data.lisp-->
 (1)(setf *news* 

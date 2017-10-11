@@ -7,7 +7,7 @@ import math
 from functools import reduce
 from nltk.corpus import wordnet
 
-from configs import stopwords, beta, extra, limit, syno_cnt, time_extra, db_name
+from configs import stopwords, beta, extra, limit, syno_cnt, time_extra
 
 def make_dict_with_entire_table(db_name):
     print('############### db {} ##################'.format(db_name))
@@ -81,9 +81,12 @@ def make_dict_with_entire_table(db_name):
         filtered_dic[i]['syno'] = []
         filtered_dic[i]['tmp'] = wordnet.synsets(i)
 
-    print('sim...')
+    print('sim {}...'.format(len(filtered_dic.keys())))
     from itertools import product
+    cccc = 0
     for i, j in product(filtered_dic.keys(), filtered_dic.keys()):
+        print('\r{}'.format(cccc), end='')
+        cccc = cccc + 1
         if i == j:
             continue
         synsi = filtered_dic[i]['tmp']
@@ -150,6 +153,7 @@ def make_dict_with_entire_table(db_name):
 
 
 if __name__ == '__main__':
+    from configs import db_name
     make_dict_with_entire_table(db_name)
 
 

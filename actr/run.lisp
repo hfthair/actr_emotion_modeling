@@ -8,13 +8,7 @@
 				(push (one-person-say words) res)
 			)
 		)
-		(print "======= result =========")
-		(with-open-file (str "result.txt"
-                     :direction :output
-                     :if-exists :supersede
-                     :if-does-not-exist :create)
-			(format str "~{~A~^ ~}" (reverse res))
-		)
-		(reverse res)
+		(print "===== result =====")
+		(print (reverse res))
 	)
 )

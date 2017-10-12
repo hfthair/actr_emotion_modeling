@@ -66,7 +66,7 @@
 
 (define-model emo-word
 
-(sgp :esc t :rt -10 :trace-detail low :act nil
+(sgp :esc t :rt -10 :model-warnings nil :trace-detail low :act nil :v nil
 	:declarative-num-finsts 200 :declarative-finst-span 200
 	:lf 0.5 :ans .34 :pas nil
 	:mas 1.6 :imaginal-activation 1.0 :mp 1.0 :bll nil  :ol t) 

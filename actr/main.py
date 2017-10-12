@@ -4,6 +4,7 @@ import os
 import pickle
 import csv
 import sys
+import subprocess
 
 from simulation_data_pull import make_dict_with_entire_table
 from gen_news import prepair_news
@@ -60,13 +61,6 @@ def run_for_db(db_work):
             'neg': tomorow_db_total - tomorow_db_pos,
         }
 
-        with open('autorun.lisp', 'w', encoding='utf8') as f:
-            f.write('''
-(load "actr7/load-act-r.lisp")
-(load "run.lisp")
-(do-exp {} {})
-            '''.format(tomorow_db_total, wordcnt))
-
         emo = today_db_pos / \
             today_db_total if (
                 today_db_pos * 2) > today_db_total else (today_db_pos / today_db_total - 1)
@@ -74,13 +68,50 @@ def run_for_db(db_work):
 
         print('==> news from {} to {}: today_db_people {}({}) words {} emo {} sim {}'.format(
             tstart_s, tend_s, today_db_total, today_db_pos, wordcnt, emo, sim))
-        print('    run!!')
-        os.system('clisp autorun.lisp > log.txt  2>&1')
+        print('    prepare to run ----')
+        out_of_all = ''
+        if tomorow_db_total < 160:
+            print('    run in one process')
+            with open('autorun.lisp', 'w', encoding='utf8') as f:
+                f.write('''
+                (load "actr7/load-act-r.lisp")
+                (load "run.lisp")
+                (do-exp {} {})
+                '''.format(tomorow_db_total, wordcnt))
+            s = subprocess.Popen(['clisp', ' autorun.lisp'], stdout=subprocess.PIPE, shell=True)
+            out, err = s.communicate()
+            index = out.index(b'===== result =====') + len(b'===== result =====')
+            out = out[index:].decode('gbk').replace('\n', '').replace('\r', '') \
+                    .replace('((', '(').replace('))', ')').replace('"', '')\
+                    .replace('   ', ' ').replace('  ', ' ')
+            out_of_all = out
+        else:
+            people_per_process = (tomorow_db_total + 9) // 10
+            print('    run on 10 process each of {} people'.format(people_per_process))
+            processes = []
+            with open('autorun.lisp', 'w', encoding='utf8') as f:
+                f.write('''
+                (load "actr7/load-act-r.lisp")
+                (load "run.lisp")
+                (do-exp {} {})
+                '''.format(people_per_process, wordcnt))
+            for i in range(10):
+                s = subprocess.Popen(['clisp', ' autorun.lisp'], stdout=subprocess.PIPE, shell=True)
+                processes.append(s)
+            for i in processes:
+                out, err = i.communicate()
+                index = out.index(b'===== result =====') + len(b'===== result =====')
+                out = out[index:].decode('gbk').replace('((', '(').replace('))', ')').replace('"', '')
+                out = ' '.join(out.split())
+                out_of_all = out_of_all + ' ' + out
+            if 10 * people_per_process -1 != out_of_all.count(') ('):
+                raise Exception(out_of_all)
+            print(out_of_all)
         print('    finish!')
         print('    collecting result...', end='')
         fname = 'cache_{}_{}'.format(
             db_name, tstart_s.replace(' ', '-').replace(':', ''))
-        pos, zero, neg, total, detail = get_result_and_cache(fname)
+        pos, zero, neg, total, detail = get_result_and_cache(fname, out_of_all)
         if total != pos + zero + neg:
             raise Exception('total != pos + neg')
         print(' ---> {}'.format(fname))

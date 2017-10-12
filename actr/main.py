@@ -81,9 +81,8 @@ def run_for_db(db_work):
             s = subprocess.Popen(['clisp', ' autorun.lisp'], stdout=subprocess.PIPE, shell=True)
             out, err = s.communicate()
             index = out.index(b'===== result =====') + len(b'===== result =====')
-            out = out[index:].decode('gbk').replace('\n', '').replace('\r', '') \
-                    .replace('((', '(').replace('))', ')').replace('"', '')\
-                    .replace('   ', ' ').replace('  ', ' ')
+            out = out[index:].decode('gbk').replace('((', '(').replace('))', ')').replace('"', '')
+            out = ' '.join(out.split())
             out_of_all = out
         else:
             people_per_process = (tomorow_db_total + 9) // 10

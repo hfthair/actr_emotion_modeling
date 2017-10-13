@@ -128,10 +128,7 @@ def figure(storage):
     import matplotlib.pyplot as plt
     plt.rcParams['font.sans-serif']=['SimHei']
     plt.rcParams['axes.unicode_minus']=False
-    fig, axes = plt.subplots(nrows=(len(storage) + 1) // 2, ncols=2)
-    fig.set_size_inches(12, 8, forward=True)
-    fig.tight_layout(pad=2)
-    ci = 1
+
     llla = {
         '1581cheese': 'cheese',
         '3758hummus': 'hummus',
@@ -152,26 +149,26 @@ def figure(storage):
             db1 = db1 + [int(storage[i][j]['db']['pos'])]
             actr0 = actr0 + [int(storage[i][j]['actr']['neg'])]
             actr1 = actr1 + [int(storage[i][j]['actr']['pos']) + int(storage[i][j]['actr']['zero'])]
-        plt.subplot((len(storage) + 1) // 2, 2, ci)
-        ci = ci + 1
 
+        fig = plt.figure()
+        fig.set_size_inches(8, 4, forward=True)
         if len(title) > 20:
             title = list([title[i] if i%10 == 0 else '' for i in range(len(title)) ])
         x = range(len(title))
-        plt.xticks(x, title, rotation=20, fontsize=5)
-        plt.plot(x, db0, 'r--', label='real data -')
-        plt.plot(x, db1, 'r-+', label='real data +')
-        plt.plot(x, actr0, 'g--', label='simulation data -')
-        plt.plot(x, actr1, 'g-+', label='simulation data -')
-        plt.ylabel('tweets count')
+        plt.xticks(x, title, rotation=15)
+        plt.plot(x, db0, 'r--o' if llla[i] != 'bluebell' else 'r--', label='real data -')
+        plt.plot(x, db1, 'r-s' if llla[i] != 'bluebell' else 'r-', label='real data +')
+        plt.plot(x, actr0, 'g--o' if llla[i] != 'bluebell' else 'g--', label='simulation data -')
+        plt.plot(x, actr1, 'g-s' if llla[i] != 'bluebell' else 'g-', label='simulation data -')
+        plt.ylabel('The Emotion Distribution')
         plt.legend()
-        plt.title(llla[i])
-    plt.savefig('result_cnt.png', bbox_inches='tight')
+        # plt.title('The Emotion Distribution - {}'.format(llla[i]))
+        plt.savefig('figure/result_cnt_{}.png'.format(llla[i]), bbox_inches='tight')
 
-    fig, axes = plt.subplots(nrows=(len(storage) + 1) // 2, ncols=2)
-    fig.set_size_inches(12, 8, forward=True)
-    fig.tight_layout(pad=2)
-    ci = 1
+    # fig, axes = plt.subplots(nrows=(len(storage) + 1) // 2, ncols=2)
+    # fig.set_size_inches(12, 8, forward=True)
+    # fig.tight_layout(pad=2)
+    # ci = 1
     for i in storage:
         title = []
         actr0 = []
@@ -197,19 +194,22 @@ def figure(storage):
             actr0.append(avgneg * -1)
             actr1.append(avgpos)
 
-        plt.subplot((len(storage) + 1) // 2, 2, ci)
-        ci = ci + 1
+        # plt.subplot((len(storage) + 1) // 2, 2, ci)
+        # ci = ci + 1
+
+        fig = plt.figure()
+        fig.set_size_inches(8, 4, forward=True)
 
         if len(title) > 20:
             title = list([title[i] if i%10 == 0 else '' for i in range(len(title)) ])
         x = range(len(title))
-        plt.xticks(x, title, rotation=20, fontsize=5)
-        plt.plot(x, actr0, 'r--', label='negative -')
-        plt.plot(x, actr1, 'g-+', label='positive +')
-        plt.ylabel('average tweets emotion value')
+        plt.xticks(x, title, rotation=15)
+        plt.plot(x, actr0, 'r--o' if llla[i] != 'bluebell' else 'r--', label='negative -')
+        plt.plot(x, actr1, 'g-s' if llla[i] != 'bluebell' else 'g-', label='positive +')
+        plt.ylabel('The Emotion Intensity')
         plt.legend()
-        plt.title(llla[i])
-    plt.savefig('result_emo.png', bbox_inches='tight')
+        # plt.title('The Emotion Intensity - {}'.format(llla[i]))
+        plt.savefig('figure/result_emo_{}.png'.format(llla[i]), bbox_inches='tight')
 
     plt.show()
 

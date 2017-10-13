@@ -105,7 +105,7 @@ def run_for_db(db_work):
                 out_of_all = out_of_all + ' ' + out
             if 10 * people_per_process -1 != out_of_all.count(') ('):
                 raise Exception(out_of_all)
-            print(out_of_all)
+
         print('    finish!')
         print('    collecting result...', end='')
         fname = 'cache_{}_{}'.format(
@@ -124,46 +124,169 @@ def run_for_db(db_work):
     return cache
 
 
+def figure(storage):
+    import matplotlib.pyplot as plt
+    plt.rcParams['font.sans-serif']=['SimHei']
+    plt.rcParams['axes.unicode_minus']=False
+    fig, axes = plt.subplots(nrows=(len(storage) + 1) // 2, ncols=2)
+    fig.set_size_inches(12, 8, forward=True)
+    fig.tight_layout(pad=2)
+    ci = 1
+    llla = {
+        '1581cheese': 'cheese',
+        '3758hummus': 'hummus',
+        '815nestle': 'nestle',
+        '868spinach': 'spinach',
+        'db_bell': 'bluebell',
+        'db_crf': 'CRF'
+    }
+    for i in storage:
+        title = []
+        db0 = []
+        db1 = []
+        actr0 = []
+        actr1 = []
+        for j in storage[i]:
+            title = title + [j[:11]]
+            db0 = db0 + [int(storage[i][j]['db']['neg'])]
+            db1 = db1 + [int(storage[i][j]['db']['pos'])]
+            actr0 = actr0 + [int(storage[i][j]['actr']['neg'])]
+            actr1 = actr1 + [int(storage[i][j]['actr']['pos']) + int(storage[i][j]['actr']['zero'])]
+        plt.subplot((len(storage) + 1) // 2, 2, ci)
+        ci = ci + 1
+
+        if len(title) > 20:
+            title = list([title[i] if i%10 == 0 else '' for i in range(len(title)) ])
+        x = range(len(title))
+        plt.xticks(x, title, rotation=20, fontsize=5)
+        plt.plot(x, db0, 'r--', label='real data -')
+        plt.plot(x, db1, 'r-+', label='real data +')
+        plt.plot(x, actr0, 'g--', label='simulation data -')
+        plt.plot(x, actr1, 'g-+', label='simulation data -')
+        plt.ylabel('tweets count')
+        plt.legend()
+        plt.title(llla[i])
+    plt.savefig('result_cnt.png', bbox_inches='tight')
+
+    fig, axes = plt.subplots(nrows=(len(storage) + 1) // 2, ncols=2)
+    fig.set_size_inches(12, 8, forward=True)
+    fig.tight_layout(pad=2)
+    ci = 1
+    for i in storage:
+        title = []
+        actr0 = []
+        actr1 = []
+        for j in storage[i]:
+            title = title + [j[:11]]
+            fname = 'result/cache_{}_{}.csv'.format(
+                i, j.replace(' ', '-').replace(':', ''))
+            col = []
+            # if not os.path.exists(fname):
+            #     continue
+            with open(fname, 'r', encoding='utf8', newline='') as f:
+                cf = csv.reader(f)
+                for row in cf:
+                    if row:
+                        col.append(float(row[-1]))
+                    else:
+                        break
+            negs = list([x for x in col if x < 0])
+            poss = list([x for x in col if x > 0])
+            avgneg = sum(negs) / len(negs) if negs else 0
+            avgpos = sum(poss) / len(poss) if poss else 0
+            actr0.append(avgneg * -1)
+            actr1.append(avgpos)
+
+        plt.subplot((len(storage) + 1) // 2, 2, ci)
+        ci = ci + 1
+
+        if len(title) > 20:
+            title = list([title[i] if i%10 == 0 else '' for i in range(len(title)) ])
+        x = range(len(title))
+        plt.xticks(x, title, rotation=20, fontsize=5)
+        plt.plot(x, actr0, 'r--', label='negative -')
+        plt.plot(x, actr1, 'g-+', label='positive +')
+        plt.ylabel('average tweets emotion value')
+        plt.legend()
+        plt.title(llla[i])
+    plt.savefig('result_emo.png', bbox_inches='tight')
+
+    plt.show()
+
+
 from configs import src
 storage = {}
-if len(sys.argv) == 1:
-    for db_work in src:
+try:
+    if len(sys.argv) == 1:
+        for db_work in src:
+            c = run_for_db(db_work)
+            storage[db_work[0]] = c
+    else:
+        with open('result/cache.pickle', 'rb') as f:
+            storage = pickle.load(f)
+        if sys.argv[1] == 'zhanglei':
+            raise AssertionError('goto')
+        print('select db:')
+        index = 0
+        for i in src:
+            print('{}. {}'.format(index, i[0]))
+            index = index + 1
+        index = input('plz input: ')
+        index = int(index)
+        db_work = src[index]
+        print('selected ---> ' + db_work[0])
+        # index = 0
+        # for i in db_work:
+        #     print('{}. '.format(index) + i)
+        #     index = index + 1
+        # index = input('plz input: ')
         c = run_for_db(db_work)
         storage[db_work[0]] = c
-else:
-    with open('result/cache.pickle', 'rb') as f:
-        storage = pickle.load(f)
-    print('select db:')
-    index = 0
-    for i in src:
-        print('{}. {}'.format(index, i[0]))
-        index = index + 1
-    index = input('plz input: ')
-    index = int(index)
-    db_work = src[index]
-    print('selected ---> ' + db_work[0])
-    # index = 0
-    # for i in db_work:
-    #     print('{}. '.format(index) + i)
-    #     index = index + 1
-    # index = input('plz input: ')
-    c = run_for_db(db_work)
-    storage[db_work[0]] = c
-with open('result/cache.pickle', 'wb') as f:
-    pickle.dump(storage, f)
 
-f = open('result.csv', 'w', encoding='utf8', newline='')
-cf = csv.writer(f)
-for i in storage:
-    title = [i]
-    db = ['db']
-    actr = ['actr']
-    for j in storage[i]:
-        title = title + [j + 'POS', j + 'NEG', j + 'ZERO']
-        db = db + [storage[i][j]['db']['pos'], storage[i][j]['db']['neg'], 0]
-        actr = actr + [storage[i][j]['actr']['pos'], storage[i]
-                       [j]['actr']['neg'], storage[i][j]['actr']['zero']]
-    cf.writerow(title)
-    cf.writerow(db)
-    cf.writerow(actr)
-    cf.writerow(['==', '==', '==', '==', '=='])
+    with open('result/cache.pickle', 'wb') as f:
+        pickle.dump(storage, f)
+
+    figure(storage)
+    f = open('result.csv', 'w', encoding='gbk', newline='')
+    cf = csv.writer(f)
+    for i in storage:
+        title = []
+        db0 = []
+        db1 = []
+        actr0 = []
+        actr1 = []
+        for j in storage[i]:
+            title = title + [j]
+            db0 = db0 + [int(storage[i][j]['db']['neg'])]
+            db1 = db1 + [int(storage[i][j]['db']['pos'])]
+            actr0 = actr0 + [int(storage[i][j]['actr']['neg'])]
+            actr1 = actr1 + [int(storage[i][j]['actr']['pos']) + int(storage[i][j]['actr']['zero'])]
+        cf.writerow([i] + title)
+        cf.writerow(['real data -'] + db0)
+        cf.writerow(['real data +'] + db1)
+        cf.writerow(['simulation data -'] + actr0)
+        cf.writerow(['simulation data +'] + actr1)
+        cf.writerow([])
+        cf.writerow([])
+except AssertionError as e:
+    figure(storage)
+    for i in storage:
+        title = []
+        db0 = []
+        db1 = []
+        actr0 = []
+        actr1 = []
+        for j in storage[i]:
+            title = title + [j]
+            db0 = db0 + [int(storage[i][j]['db']['neg'])]
+            db1 = db1 + [int(storage[i][j]['db']['pos'])]
+            actr0 = actr0 + [int(storage[i][j]['actr']['neg'])]
+            actr1 = actr1 + [int(storage[i][j]['actr']['pos']) + int(storage[i][j]['actr']['zero'])]
+        with open('figure/{}.csv'.format(i), 'w', encoding='gbk', newline='') as f:
+            cf = csv.writer(f)
+            cf.writerow([i] + title)
+            cf.writerow(['real data -'] + db0)
+            cf.writerow(['real data +'] + db1)
+            cf.writerow(['simulation data -'] + actr0)
+            cf.writerow(['simulation data +'] + actr1)
+

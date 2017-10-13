@@ -20,7 +20,7 @@ def get_result_and_cache(csvname, output):
             if '(DIC-' in i:
                 a = i.index('DIC WORD ')
                 b = i.index(')')
-                t = i[a:b]
+                t = i[a:b].lower()
                 tl = t.split(' ')
                 dic[tl[2]] = tl[4]
     print('ok')

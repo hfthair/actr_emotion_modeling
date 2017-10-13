@@ -145,12 +145,12 @@ def make_dict_with_entire_table(db_name):
         f.write('\t\t(chunk-type DIC WORD VAL ' + ' '.join(['SYNO{}'.format(x) for x in range(syno_cnt)]) + ')\n')
         cnt = 0
         for i in output:
-            tmp = ' '.join(['SYNO{} {}'.format(x, i['syno'][x] if x < len(i['syno']) else 'nil') for x in range(syno_cnt)])
+            tmp = ' '.join(['SYNO{} {}'.format(x, 'W-' + i['syno'][x] if x < len(i['syno']) else 'nil') for x in range(syno_cnt)])
             f.write('''
         (ADD-DM
             ({0} ISA CHUNK)
             (DIC-{1} ISA DIC WORD {0} VAL {2} {3})
-        )\n'''.format(i['word'], cnt, i['value'], tmp))
+        )\n'''.format('W-' + i['word'], cnt, i['value'], tmp))
             f.write('        (SDP DIC-{} :BASE-LEVEL {})\n'.format(cnt, i['bi']))
             cnt = cnt + 1
         f.write('\n))')

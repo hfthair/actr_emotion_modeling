@@ -143,6 +143,8 @@ def figure(storage):
         db1 = []
         actr0 = []
         actr1 = []
+        emo0 = []
+        emo1 = []
         for j in storage[i]:
             title = title + [j[:11]]
             db0 = db0 + [int(storage[i][j]['db']['neg'])]
@@ -150,31 +152,6 @@ def figure(storage):
             actr0 = actr0 + [int(storage[i][j]['actr']['neg'])]
             actr1 = actr1 + [int(storage[i][j]['actr']['pos']) + int(storage[i][j]['actr']['zero'])]
 
-        fig = plt.figure()
-        fig.set_size_inches(8, 4, forward=True)
-        if len(title) > 20:
-            title = list([title[i] if i%10 == 0 else '' for i in range(len(title)) ])
-        x = range(len(title))
-        plt.xticks(x, title, rotation=15)
-        plt.plot(x, db0, 'r--o' if llla[i] != 'bluebell' else 'r--', label='real data -')
-        plt.plot(x, db1, 'r-s' if llla[i] != 'bluebell' else 'r-', label='real data +')
-        plt.plot(x, actr0, 'g--o' if llla[i] != 'bluebell' else 'g--', label='simulation data -')
-        plt.plot(x, actr1, 'g-s' if llla[i] != 'bluebell' else 'g-', label='simulation data -')
-        plt.ylabel('The Emotion Distribution')
-        plt.legend()
-        # plt.title('The Emotion Distribution - {}'.format(llla[i]))
-        plt.savefig('figure/result_cnt_{}.png'.format(llla[i]), bbox_inches='tight')
-
-    # fig, axes = plt.subplots(nrows=(len(storage) + 1) // 2, ncols=2)
-    # fig.set_size_inches(12, 8, forward=True)
-    # fig.tight_layout(pad=2)
-    # ci = 1
-    for i in storage:
-        title = []
-        actr0 = []
-        actr1 = []
-        for j in storage[i]:
-            title = title + [j[:11]]
             fname = 'result/cache_{}_{}.csv'.format(
                 i, j.replace(' ', '-').replace(':', ''))
             col = []
@@ -191,25 +168,54 @@ def figure(storage):
             poss = list([x for x in col if x > 0])
             avgneg = sum(negs) / len(negs) if negs else 0
             avgpos = sum(poss) / len(poss) if poss else 0
-            actr0.append(avgneg * -1)
-            actr1.append(avgpos)
-
-        # plt.subplot((len(storage) + 1) // 2, 2, ci)
-        # ci = ci + 1
+            emo0.append(avgneg * -1)
+            emo1.append(avgpos)
 
         fig = plt.figure()
         fig.set_size_inches(8, 4, forward=True)
-
         if len(title) > 20:
             title = list([title[i] if i%10 == 0 else '' for i in range(len(title)) ])
         x = range(len(title))
         plt.xticks(x, title, rotation=15)
-        plt.plot(x, actr0, 'r--o' if llla[i] != 'bluebell' else 'r--', label='negative -')
-        plt.plot(x, actr1, 'g-s' if llla[i] != 'bluebell' else 'g-', label='positive +')
+        plt.plot(x, db0, 'r--o' if llla[i] != 'bluebell' else 'r--', label='real data -')
+        plt.plot(x, db1, 'r-s' if llla[i] != 'bluebell' else 'r-', label='real data +')
+        plt.plot(x, actr0, 'g--o' if llla[i] != 'bluebell' else 'g--', label='simulation data -')
+        plt.plot(x, actr1, 'g-s' if llla[i] != 'bluebell' else 'g-', label='simulation data +')
+        plt.ylabel('The Emotion Distribution')
+        plt.legend()
+        # plt.title('The Emotion Distribution - {}'.format(llla[i]))
+        fig.canvas.set_window_title('figure/EmotionDistribution_{}.png'.format(llla[i]))
+        plt.savefig('figure/EmotionDistribution_{}.png'.format(llla[i]), bbox_inches='tight')
+
+        fig = plt.figure()
+        fig.set_size_inches(8, 4, forward=True)
+        plt.xticks(x, title, rotation=15)
+        plt.plot(x, emo0, 'r--o' if llla[i] != 'bluebell' else 'r--', label='negative')
+        plt.plot(x, emo1, 'g-s' if llla[i] != 'bluebell' else 'g-', label='positive')
         plt.ylabel('The Emotion Intensity')
         plt.legend()
         # plt.title('The Emotion Intensity - {}'.format(llla[i]))
-        plt.savefig('figure/result_emo_{}.png'.format(llla[i]), bbox_inches='tight')
+        fig.canvas.set_window_title('figure/EmotionIntensity_{}.png'.format(llla[i]))
+        plt.savefig('figure/EmotionIntensity_{}.png'.format(llla[i]), bbox_inches='tight')
+
+        
+        fig = plt.figure()
+        fig.set_size_inches(8, 4, forward=True)
+        plt.xticks(x, title, rotation=15)
+        plt.plot(x, emo0, 'r-', label='Negative Emotion Intensity')
+        plt.plot(x, emo1, 'g-', label='Positive Emotion Intensity')
+        max0 = max(actr0)
+        min0 = min(actr0)
+        a0 = [(i - min0) / (max0 - min0) for i in actr0]
+        max1 = max(actr1)
+        min1 = min(actr1)
+        a1 = [(i - min1) / (max1 - min1) for i in actr1]
+        plt.plot(x, a0, 'r--', label='Negative Emotion Distribution')
+        plt.plot(x, a1, 'g--', label='Positive Emotion Distribution')
+        plt.ylabel('')
+        plt.legend()
+        # plt.title('The Emotion Intensity - {}'.format(llla[i]))
+        plt.savefig('figure/mix_{}.png'.format(llla[i]), bbox_inches='tight')
 
     plt.show()
 
@@ -269,24 +275,70 @@ try:
         cf.writerow([])
         cf.writerow([])
 except AssertionError as e:
+    with open('figure/all.csv', 'w', encoding='gbk', newline='') as f, \
+        open('figure/alle.csv', 'w', encoding='gbk', newline='') as fe:
+        cf = csv.writer(f)
+        cf.writerow(['', 'datetime', 'real data -', 'real data +',\
+                    'simulation data -', 'simulation data +'])
+        cfe = csv.writer(fe)
+        cfe.writerow(['', 'datetime', 'average emotion -', 'average emotion +'])
+        for i in storage:
+            title = []
+            db0 = []
+            db1 = []
+            actr0 = []
+            actr1 = []
+            emo0 = []
+            emo1 = []
+            for j in storage[i]:
+                title = title + [j]
+                db0 = db0 + [int(storage[i][j]['db']['neg'])]
+                db1 = db1 + [int(storage[i][j]['db']['pos'])]
+                actr0 = actr0 + [int(storage[i][j]['actr']['neg'])]
+                actr1 = actr1 + [int(storage[i][j]['actr']['pos']) + int(storage[i][j]['actr']['zero'])]
+
+                fname = 'result/cache_{}_{}.csv'.format(
+                i, j.replace(' ', '-').replace(':', ''))
+                col = []
+                with open(fname, 'r', encoding='utf8', newline='') as fx:
+                    cfx = csv.reader(fx)
+                    for row in cfx:
+                        if row:
+                            col.append(float(row[-1]))
+                        else:
+                            break
+                negs = list([x for x in col if x < 0])
+                poss = list([x for x in col if x > 0])
+                avgneg = sum(negs) / len(negs) if negs else 0
+                avgpos = sum(poss) / len(poss) if poss else 0
+                emo0.append(avgneg * -1)
+                emo1.append(avgpos)
+
+            for k in range(len(title)):
+                cf.writerow([i, title[k], db0[k], db1[k], actr0[k], actr1[k]])
+            for k in range(len(title)):
+                cfe.writerow([i, title[k], emo0[k], emo1[k]])
+
+
     figure(storage)
-    for i in storage:
-        title = []
-        db0 = []
-        db1 = []
-        actr0 = []
-        actr1 = []
-        for j in storage[i]:
-            title = title + [j]
-            db0 = db0 + [int(storage[i][j]['db']['neg'])]
-            db1 = db1 + [int(storage[i][j]['db']['pos'])]
-            actr0 = actr0 + [int(storage[i][j]['actr']['neg'])]
-            actr1 = actr1 + [int(storage[i][j]['actr']['pos']) + int(storage[i][j]['actr']['zero'])]
-        with open('figure/{}.csv'.format(i), 'w', encoding='gbk', newline='') as f:
-            cf = csv.writer(f)
-            cf.writerow([i] + title)
-            cf.writerow(['real data -'] + db0)
-            cf.writerow(['real data +'] + db1)
-            cf.writerow(['simulation data -'] + actr0)
-            cf.writerow(['simulation data +'] + actr1)
+
+    # for i in storage:
+    #     title = []
+    #     db0 = []
+    #     db1 = []
+    #     actr0 = []
+    #     actr1 = []
+    #     for j in storage[i]:
+    #         title = title + [j]
+    #         db0 = db0 + [int(storage[i][j]['db']['neg'])]
+    #         db1 = db1 + [int(storage[i][j]['db']['pos'])]
+    #         actr0 = actr0 + [int(storage[i][j]['actr']['neg'])]
+    #         actr1 = actr1 + [int(storage[i][j]['actr']['pos']) + int(storage[i][j]['actr']['zero'])]
+    #     with open('figure/{}.csv'.format(i), 'w', encoding='gbk', newline='') as f:
+    #         cf = csv.writer(f)
+    #         cf.writerow([i] + title)
+    #         cf.writerow(['real data -'] + db0)
+    #         cf.writerow(['real data +'] + db1)
+    #         cf.writerow(['simulation data -'] + actr0)
+    #         cf.writerow(['simulation data +'] + actr1)
 

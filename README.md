@@ -1,1 +1,1 @@
-from long term worker of djj family
+homework based on ACT-R(common lisp) and Python

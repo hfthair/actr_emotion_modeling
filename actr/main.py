@@ -224,8 +224,8 @@ try:
     else:
         with open('result/cache.pickle', 'rb') as f:
             storage = pickle.load(f)
-        if sys.argv[1] == 'zhanglei':
-            raise AssertionError('goto')
+        if sys.argv[1] == 'img':
+            raise AssertionError('goto figure')
         print('select db:')
         index = 0
         for i in src:

@@ -71,8 +71,7 @@ def generate(db_name):
     print('collected: {}'.format(len(collectDic)))
 
     trunked = sorted(collectDic.items(), key=lambda x: x[1]['freq'], reverse=True)[:limit]
-    # words = [x[0] for x in trunked]
-    # words = list(words)
+
     filtered_dic = dict(trunked)
     for i in filtered_dic:
         ts = filtered_dic[i]['time']

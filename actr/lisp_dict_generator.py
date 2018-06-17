@@ -9,7 +9,7 @@ from nltk.corpus import wordnet
 
 from configs import stopwords, beta, extra, limit, syno_cnt, time_extra
 
-def make_dict_with_entire_table(db_name):
+def generate(db_name):
     print('############### db {} ##################'.format(db_name))
     if os.path.exists('result/{}/dict.lisp'.format(db_name)):
         print('!!!!!!!!!!!! use cache dir !!!!!!!!!!!!!')
@@ -17,7 +17,6 @@ def make_dict_with_entire_table(db_name):
         print('$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$')
         print('\n\n')
         return
-
 
     print('connect to db...')
     conn = pymysql.connect(host='localhost', user='root', passwd='nicaicai', db=db_name, port=3306, charset='utf8mb4')
@@ -158,12 +157,3 @@ def make_dict_with_entire_table(db_name):
 
     print('$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$')
     print('\n\n')
-
-
-if __name__ == '__main__':
-    from configs import db_name
-    make_dict_with_entire_table(db_name)
-
-
-
-

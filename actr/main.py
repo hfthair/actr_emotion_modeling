@@ -5,17 +5,18 @@ import pickle
 import csv
 import sys
 import subprocess
+import matplotlib.pyplot as plt
 
-from simulation_data_pull import make_dict_with_entire_table
-from gen_news import prepair_news
-from anyl import get_result_and_cache
-
+from lisp_dict_generator import generate as generate_lisp_dict
+from lisp_news_generator import generate as generate_lisp_news
+from calc_result import analyze
+from configs import src
 
 def run_for_db(db_work):
     cache = {}
     db_name = db_work[0]
     print('@@@@@@@@@@@@@@@@@ {} @@@@@@@@@@@@@@@'.format(db_name))
-    make_dict_with_entire_table(db_name)
+    generate_lisp_dict(db_name)
     for new in db_work[1:]:
         tstart_s = new[0]
         tend_s = new[1]
@@ -64,7 +65,7 @@ def run_for_db(db_work):
         emo = today_db_pos / \
             today_db_total if (
                 today_db_pos * 2) > today_db_total else (today_db_pos / today_db_total - 1)
-        prepair_news(db_name, tstart_s, tend_s, emo, sim)
+        generate_lisp_news(db_name, tstart_s, tend_s, emo, sim)
 
         print('==> news from {} to {}: today_db_people {}({}) words {} emo {} sim {}'.format(
             tstart_s, tend_s, today_db_total, today_db_pos, wordcnt, emo, sim))
@@ -110,7 +111,7 @@ def run_for_db(db_work):
         print('    collecting result...', end='')
         fname = 'cache_{}_{}'.format(
             db_name, tstart_s.replace(' ', '-').replace(':', ''))
-        pos, zero, neg, total, detail = get_result_and_cache(fname, out_of_all)
+        pos, zero, neg, total, detail = analyze(fname, out_of_all)
         if total != pos + zero + neg:
             raise Exception('total != pos + neg')
         print(' ---> {}'.format(fname))
@@ -123,9 +124,7 @@ def run_for_db(db_work):
         }
     return cache
 
-
 def figure(storage):
-    import matplotlib.pyplot as plt
     plt.rcParams['font.sans-serif']=['SimHei']
     plt.rcParams['axes.unicode_minus']=False
 
@@ -183,7 +182,6 @@ def figure(storage):
         plt.plot(x, actr1, 'g-s' if llla[i] != 'bluebell' else 'g-', label='simulation data +')
         plt.ylabel('The Emotion Distribution')
         plt.legend()
-        # plt.title('The Emotion Distribution - {}'.format(llla[i]))
         fig.canvas.set_window_title('figure/EmotionDistribution_{}.png'.format(llla[i]))
         plt.savefig('figure/EmotionDistribution_{}.png'.format(llla[i]), bbox_inches='tight')
 
@@ -194,11 +192,9 @@ def figure(storage):
         plt.plot(x, emo1, 'g-s' if llla[i] != 'bluebell' else 'g-', label='positive')
         plt.ylabel('The Emotion Intensity')
         plt.legend()
-        # plt.title('The Emotion Intensity - {}'.format(llla[i]))
         fig.canvas.set_window_title('figure/EmotionIntensity_{}.png'.format(llla[i]))
         plt.savefig('figure/EmotionIntensity_{}.png'.format(llla[i]), bbox_inches='tight')
 
-        
         fig = plt.figure()
         fig.set_size_inches(8, 4, forward=True)
         plt.xticks(x, title, rotation=15)
@@ -214,13 +210,11 @@ def figure(storage):
         plt.plot(x, a1, 'g--', label='Positive Emotion Distribution')
         plt.ylabel('')
         plt.legend()
-        # plt.title('The Emotion Intensity - {}'.format(llla[i]))
         plt.savefig('figure/mix_{}.png'.format(llla[i]), bbox_inches='tight')
 
     plt.show()
 
 
-from configs import src
 storage = {}
 try:
     if len(sys.argv) == 1:
@@ -241,11 +235,6 @@ try:
         index = int(index)
         db_work = src[index]
         print('selected ---> ' + db_work[0])
-        # index = 0
-        # for i in db_work:
-        #     print('{}. '.format(index) + i)
-        #     index = index + 1
-        # index = input('plz input: ')
         c = run_for_db(db_work)
         storage[db_work[0]] = c
 
@@ -318,27 +307,4 @@ except AssertionError as e:
                 cf.writerow([i, title[k], db0[k], db1[k], actr0[k], actr1[k]])
             for k in range(len(title)):
                 cfe.writerow([i, title[k], emo0[k], emo1[k]])
-
-
     figure(storage)
-
-    # for i in storage:
-    #     title = []
-    #     db0 = []
-    #     db1 = []
-    #     actr0 = []
-    #     actr1 = []
-    #     for j in storage[i]:
-    #         title = title + [j]
-    #         db0 = db0 + [int(storage[i][j]['db']['neg'])]
-    #         db1 = db1 + [int(storage[i][j]['db']['pos'])]
-    #         actr0 = actr0 + [int(storage[i][j]['actr']['neg'])]
-    #         actr1 = actr1 + [int(storage[i][j]['actr']['pos']) + int(storage[i][j]['actr']['zero'])]
-    #     with open('figure/{}.csv'.format(i), 'w', encoding='gbk', newline='') as f:
-    #         cf = csv.writer(f)
-    #         cf.writerow([i] + title)
-    #         cf.writerow(['real data -'] + db0)
-    #         cf.writerow(['real data +'] + db1)
-    #         cf.writerow(['simulation data -'] + actr0)
-    #         cf.writerow(['simulation data +'] + actr1)
-

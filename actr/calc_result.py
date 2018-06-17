@@ -2,7 +2,7 @@ import csv
 import datetime
 import pymysql
 
-def get_result_and_cache(csvname, output):
+def analyze(csvname, output):
     print('    process output...', end='')
     r = output
     r = r.lower()

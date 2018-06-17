@@ -3,8 +3,7 @@ import pymysql
 
 from configs import stopwords
 
-######################################################
-def prepair_news(db_name, tfr, tto, retrival_emo, similarity_param):
+def generate(db_name, tfr, tto, retrival_emo, similarity_param):
     print('################ gen news ################')
     sss = []
     conn = pymysql.connect(host='localhost', user='root', passwd='nicaicai', db=db_name, port=3306, charset='utf8mb4')
@@ -46,8 +45,3 @@ def prepair_news(db_name, tfr, tto, retrival_emo, similarity_param):
     (setf *emo* {})
     (setf *simparam* {})
     '''.format(words, retrival_emo, similarity_param))
-
-
-if __name__ == '__main__':
-    from configs import db_name, tfr, tto, retrival_emo, similarity_param
-    prepair_to_run(db_name, tfr, tto, retrival_emo, similarity_param)

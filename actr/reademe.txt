@@ -1,34 +1,17 @@
-1 run step 1 ,make dic ,database ,configs.py---> dic and news cansh
-2 run step 2,make news ,prog run and get excel,--->cofigs, main.lisp and run .lisp
-===================================================================
-1 run python  simulation_data_pull---> result/dict.lisp
-2 data.lisp-->
-(1)(setf *news* 
-	'(
-	soft brand recall serious listeria poison case
-	)
-)
-¿½³önewsµÄ´Ê
 
-(2)Çé¸ĞÇãÏòÉèÖÃ
-(setf *emo* -0.37)
-(3)ÏàËÆ¶È³Í·£ÏµÊı
-(setf *simparam* 3.5)
-3 main.lispp--->
+# main.lispp
 (sgp :esc t 
-:rt -10ãĞÖµ
-:trace-detail high high¿ÉÒÔ¸Ä³Énil or low
-:act nil activation¼ÇÂ¼£¬ÏÔÊ¾Îªt
+:rt -10é˜ˆå€¼
+:trace-detail high highå¯ä»¥æ”¹æˆnil or low
+:act nil activationè®°å½•ï¼Œæ˜¾ç¤ºä¸ºt
 :declarative-num-finsts 200
 :declarative-finst-span 200
 :lf 0.5 
-:ans .61 noise¿ÉÒÔĞŞ¸Ä
+:ans .61 noiseå¯ä»¥ä¿®æ”¹
 :pas nil
-:mas 9  SÖµ
-:imaginal-activation 1.0  SjiµÄÏµÊı£¬¿ÉÒÔĞŞ¸Ä£¬Ä¬ÈÏÎª0
-:mp 1.0  ÏàËÆ¶ÈÏµÊı£¬Ä¬ÈÏÊÇ0
-:bll nil  
-:ol t) 
+:mas 9  Så€¼
+:imaginal-activation 1.0  Sjiçš„ç³»æ•°ï¼Œå¯ä»¥ä¿®æ”¹ï¼Œé»˜è®¤ä¸º0
+:mp 1.0  ç›¸ä¼¼åº¦ç³»æ•°ï¼Œé»˜è®¤æ˜¯0
+:bll nil
+:ol t)
 (sgp :sim-hook simhook )
-4 run anyl.py
-

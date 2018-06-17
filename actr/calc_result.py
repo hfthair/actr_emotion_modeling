@@ -15,7 +15,7 @@ def analyze(csvname, output):
 
     print('    read emo value from dict...', end='')
     dic = {}
-    with open('result/dict.lisp', 'r', encoding='utf8') as f:
+    with open('clisp/generate/dict.lisp', 'r', encoding='utf8') as f:
         for i in f.readlines():
             if '(DIC-' in i:
                 a = i.index('DIC WORD ')

@@ -1,6 +1,6 @@
 (clear-all)
 
-(load "data.lisp")
+(load "clisp/data.lisp")
 
 (setf *result* ())
 

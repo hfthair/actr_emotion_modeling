@@ -73,13 +73,13 @@ def run_for_db(db_work):
         out_of_all = ''
         if tomorow_db_total < 160:
             print('    run in one process')
-            with open('autorun.lisp', 'w', encoding='utf8') as f:
+            with open('clisp/generate/autorun.lisp', 'w', encoding='utf8') as f:
                 f.write('''
                 (load "actr7/load-act-r.lisp")
-                (load "run.lisp")
+                (load "clisp/run.lisp")
                 (do-exp {} {})
                 '''.format(tomorow_db_total, wordcnt))
-            s = subprocess.Popen(['clisp', ' autorun.lisp'], stdout=subprocess.PIPE, shell=True)
+            s = subprocess.Popen(['clisp', ' clisp/generate/autorun.lisp'], stdout=subprocess.PIPE, shell=True)
             out, err = s.communicate()
             index = out.index(b'===== result =====') + len(b'===== result =====')
             out = out[index:].decode('gbk').replace('((', '(').replace('))', ')').replace('"', '')
@@ -89,14 +89,14 @@ def run_for_db(db_work):
             people_per_process = (tomorow_db_total + 9) // 10
             print('    run on 10 process each of {} people'.format(people_per_process))
             processes = []
-            with open('autorun.lisp', 'w', encoding='utf8') as f:
+            with open('clisp/generate/autorun.lisp', 'w', encoding='utf8') as f:
                 f.write('''
                 (load "actr7/load-act-r.lisp")
-                (load "run.lisp")
+                (load "clisp/run.lisp")
                 (do-exp {} {})
                 '''.format(people_per_process, wordcnt))
             for i in range(10):
-                s = subprocess.Popen(['clisp', ' autorun.lisp'], stdout=subprocess.PIPE, shell=True)
+                s = subprocess.Popen(['clisp', ' clisp/generate/autorun.lisp'], stdout=subprocess.PIPE, shell=True)
                 processes.append(s)
             for i in processes:
                 out, err = i.communicate()
@@ -182,8 +182,8 @@ def figure(storage):
         plt.plot(x, actr1, 'g-s' if llla[i] != 'bluebell' else 'g-', label='simulation data +')
         plt.ylabel('The Emotion Distribution')
         plt.legend()
-        fig.canvas.set_window_title('figure/EmotionDistribution_{}.png'.format(llla[i]))
-        plt.savefig('figure/EmotionDistribution_{}.png'.format(llla[i]), bbox_inches='tight')
+        fig.canvas.set_window_title('result/figure/EmotionDistribution_{}.png'.format(llla[i]))
+        plt.savefig('result/figure/EmotionDistribution_{}.png'.format(llla[i]), bbox_inches='tight')
 
         fig = plt.figure()
         fig.set_size_inches(8, 4, forward=True)
@@ -192,8 +192,8 @@ def figure(storage):
         plt.plot(x, emo1, 'g-s' if llla[i] != 'bluebell' else 'g-', label='positive')
         plt.ylabel('The Emotion Intensity')
         plt.legend()
-        fig.canvas.set_window_title('figure/EmotionIntensity_{}.png'.format(llla[i]))
-        plt.savefig('figure/EmotionIntensity_{}.png'.format(llla[i]), bbox_inches='tight')
+        fig.canvas.set_window_title('result/figure/EmotionIntensity_{}.png'.format(llla[i]))
+        plt.savefig('result/figure/EmotionIntensity_{}.png'.format(llla[i]), bbox_inches='tight')
 
         fig = plt.figure()
         fig.set_size_inches(8, 4, forward=True)
@@ -210,7 +210,7 @@ def figure(storage):
         plt.plot(x, a1, 'g--', label='Positive Emotion Distribution')
         plt.ylabel('')
         plt.legend()
-        plt.savefig('figure/mix_{}.png'.format(llla[i]), bbox_inches='tight')
+        plt.savefig('result/figure/mix_{}.png'.format(llla[i]), bbox_inches='tight')
 
     plt.show()
 
@@ -242,7 +242,7 @@ try:
         pickle.dump(storage, f)
 
     figure(storage)
-    f = open('result.csv', 'w', encoding='gbk', newline='')
+    f = open('result/result.csv', 'w', encoding='gbk', newline='')
     cf = csv.writer(f)
     for i in storage:
         title = []
@@ -264,8 +264,8 @@ try:
         cf.writerow([])
         cf.writerow([])
 except AssertionError as e:
-    with open('figure/all.csv', 'w', encoding='gbk', newline='') as f, \
-        open('figure/alle.csv', 'w', encoding='gbk', newline='') as fe:
+    with open('result/figure/all.csv', 'w', encoding='gbk', newline='') as f, \
+        open('result/figure/alle.csv', 'w', encoding='gbk', newline='') as fe:
         cf = csv.writer(f)
         cf.writerow(['', 'datetime', 'real data -', 'real data +',\
                     'simulation data -', 'simulation data +'])

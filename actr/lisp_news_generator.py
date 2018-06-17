@@ -35,7 +35,7 @@ def generate(db_name, tfr, tto, retrival_emo, similarity_param):
     print('============vvvvvvvvvvv=================')
 
     print('words ====> {}'.format(len(res)))
-    with open('result/news.lisp', 'w', encoding='utf8') as f:
+    with open('clisp/generate/news.lisp', 'w', encoding='utf8') as f:
         f.write('''
     (setf *news* 
         '(
